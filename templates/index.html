@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="py-5">
+  <div class="container">
+    <div class="card bg-dark text-light shadow-lg border-0 mx-auto" style="max-width: 900px;">
+      <div class="card-body p-5 text-center">
+        <h1 class="display-5 fw-bold mb-3">GitHub Resolution Time Predictor</h1>
+        <p class="lead text-secondary mb-4">
+          Estimate whether a GitHub issue will be resolved in one of these timeframes:
+        </p>
+        <ul class="list-group list-group-flush mb-4">
+          <li class="list-group-item bg-dark text-light">⏱️ Short: ≤ 1 day</li>
+          <li class="list-group-item bg-dark text-light">📅 Medium: 1–7 days</li>
+          <li class="list-group-item bg-dark text-light">🕒 Long: &gt; 7 days</li>
+        </ul>
+        <a class="btn btn-primary btn-lg px-4" href="{{ url_for('predict_datapoint') }}">
+          🚀 Try a Prediction
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

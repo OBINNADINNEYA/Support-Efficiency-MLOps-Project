@@ -14,3 +14,12 @@ We predict **issue complexity**, **routing (team assignment)**, and **resolution
 make install
 make train
 make serve
+
+
+#terminal commands 
+#create venv
+#install all requirements
+conda create -n myenv python=3.12
+conda activate myenv
+conda install --file requirements.txt --yes || true
+pip install -r requirements.txt
