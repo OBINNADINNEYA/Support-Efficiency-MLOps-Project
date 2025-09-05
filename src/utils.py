@@ -23,7 +23,7 @@ from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 TITLE_RE   = re.compile(r"(?i)\btitle:\s*(.+?)\s*(?=username_\d+:|$)")
 SPEAKER_RE = re.compile(r"\busername_\d+:\s*")
 
-X_COLS = ["text_size","comment_count","participants_count","first_response_minutes","first_response_missing"]
+X_COLS = ["text_size","comment_count","first_response_minutes"]
 
 
 def clean_content(text: str) -> str:
@@ -198,10 +198,7 @@ def build_model_table_from_parquet(parquet_path: str, out_csv: str | None = None
 
     except Exception as e:
         raise CustomException(e, sys)
-    
-   
-
-
+      
 def build_features_for_inference(data) -> pd.DataFrame:
     try:
         # normalize input -> DataFrame
@@ -254,10 +251,6 @@ def build_features_for_inference(data) -> pd.DataFrame:
         raise CustomException(e, sys)
 
     
-
-
-
-
 #-----------------------------OTHER UTILS-----------------------------------------------------
 def save_object(file_path, obj):
     try:

@@ -15,6 +15,7 @@ from src.utils import *
 from sklearn.naive_bayes import GaussianNB
 from lightgbm import LGBMClassifier
 from sklearn.neural_network import MLPClassifier
+import shap
 
 
 @dataclass
@@ -30,7 +31,7 @@ class ModelTrainer:
         self.Model_Trainer_config = ModelTrainerConfig()
 
 
-    def initiate_model_training(self,train_array,test_array,preprocessor_path,encoder_path):
+    def initiate_model_training(self,train_array,test_array,preprocessor_path,encoder_path, enable_shap = False):
 
         try:
             logging.info("splitting training and test input data")
@@ -142,6 +143,60 @@ class ModelTrainer:
             logging.info("saving best model")
 
             te = results[best_model_name]
+
+                    # ------------ SHAP (optional, non-blocking) ------------
+            if enable_shap:
+                
+
+                TREE_LIKE = (
+                    CatBoostClassifier, XGBClassifier, LGBMClassifier,
+                    RandomForestClassifier, GradientBoostingClassifier,
+                    ExtraTreesClassifier, HistGradientBoostingClassifier
+                )
+
+                if isinstance(best_model, TREE_LIKE):
+                    # Pick feature names
+                    if x_cols is None:
+                        # fall back to generic names matching the transformed matrix width
+                        x_cols = [f"f{i}" for i in range(X_test.shape[1])]
+
+                    # sample to keep SHAP fast
+                    idx = np.random.RandomState(42).choice(X_test.shape[0],
+                                                        size=min(shap_max_rows, X_test.shape[0]),
+                                                        replace=False)
+                    X_small = X_test[idx]
+                    y_small = y_test[idx]
+
+                    X_small_df = pd.DataFrame(X_small, columns=x_cols)
+
+                    explainer = shap.TreeExplainer(best_model)
+                    sv = explainer(X_small_df)  # new API Explanation
+
+                    # Global importance (handles binary or multiclass)
+                    vals = sv.values
+                    if vals.ndim == 2:
+                        glob = np.abs(vals).mean(axis=0)
+                    elif vals.ndim == 3:
+                        glob = np.abs(vals).mean(axis=(0, 2))
+                    else:
+                        glob = np.abs(vals).reshape(vals.shape[1], -1).mean(axis=1)
+
+                    # Save bar plot
+                    plt.figure(figsize=(6, 3.5))
+                    order = np.argsort(glob)[::-1]
+                    plt.barh(np.array(x_cols)[order], glob[order])
+                    plt.gca().invert_yaxis()
+                    plt.title(f"{best_model_name} – SHAP Feature Importance")
+                    plt.xlabel("Mean |SHAP|")
+                    plt.tight_layout()
+                    os.makedirs("artifacts", exist_ok=True)
+                    out_path = os.path.join("artifacts", "shap_global.png")
+                    plt.savefig(out_path, dpi=150)
+                    plt.close()
+                    logging.info(f"Saved SHAP global importance → {out_path}")
+                else:
+                    logging.info(f"SHAP skipped: {best_model_name} is not tree-based")
+            # --------------------------------------------------------
 
             summary = (
                 f"Best model: {best_model_name}\n"

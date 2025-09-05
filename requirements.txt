@@ -11,4 +11,7 @@ flask
 datasets
 dataclasses
 lightgbm
+shap
+statsmodels
+econml
 #-e .
